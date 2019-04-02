@@ -14,10 +14,10 @@ type client struct {
 }
 
 type mugs struct{
-	avalible_mugs, mugs_in_use int
+	availableMugs, mugsInUse int
 }
 
-func (m *mugs) break_mug() bool{
+func (mugs_ *mugs) breakMug() bool{
 	if rand.Intn(100) > 80{
 		profit-= 20
 		return true
@@ -25,20 +25,20 @@ func (m *mugs) break_mug() bool{
 	return false
 }
 
-func (m *mugs) get_mug(){
+func (mugs_ *mugs) getMug(){
 	fmt.Print("Barista: Getting mug...\n")
-	if m.avalible_mugs == 0 {
-		fmt.Printf("Barista: Oh I'm sorry, but our retarded bakery has only %d mugs...\n", m.avalible_mugs+m.mugs_in_use)
+	if mugs_.availableMugs == 0 {
+		fmt.Printf("Barista: Oh I'mugs_ sorry, but our retarded bakery has only %d mugs...\n", mugs_.availableMugs+mugs_.mugsInUse)
 	}
 	for {
-		if m.avalible_mugs > 0 {
-			if m.break_mug(){
+		if mugs_.availableMugs > 0 {
+			if mugs_.breakMug(){
 				fmt.Print("Mug broken :C\n")
-				m.avalible_mugs --
+				mugs_.availableMugs --
 			}
 			time.Sleep(1 * time.Second)
-			m.avalible_mugs --
-			m.mugs_in_use ++
+			mugs_.availableMugs --
+			mugs_.mugsInUse ++
 			fmt.Print("Barista: Oh... Here it is!!\n")
 			break
 		}
@@ -46,29 +46,35 @@ func (m *mugs) get_mug(){
 	}
 }
 
-func create_client(n int) *client{
-	return &client{n, time.Now(), 0}
+func createClient(index int) *client{
+	return &client{index, time.Now(), 0}
 }
 
-func make_client_queue(number_of_clients int) []*client{
+func makeClientQueue(numberOfClients int) []*client{
+	/*
+	Create queue of clients of size 'numberOfClients'
+	 */
 	var out []*client
-	for i:=0; i<number_of_clients; i++{
-		out = append(out, create_client(i))
+	for i:=0; i< numberOfClients; i++{
+		out = append(out, createClient(i))
 		fmt.Printf("Client %d entered bakery\n", i)
 	}
 	return out
 }
 
-func get_coffe(c chan *client, m *mugs, got_coffe chan int){
+func getCoffee(client_ chan *client, mugs_ *mugs, gotCoffee chan int){
+	/*
+	This function handles batista which is preparing coffee and client which is waiting.
+	 */
 	mu.Lock()
 	profit += 8.50
-	cli := <-c
+	cli := <-client_
 	fmt.Printf("***Barista is serving client %d***\n", cli.index)
-	m.get_mug()
+	mugs_.getMug()
 	time.Sleep(3 * time.Second)
 	fmt.Printf("Client %d got coffe!\n", cli.index)
 	//fmt.Printf(time.Now().String() + "\n")
-	got_coffe <- cli.index
+	gotCoffee <- cli.index
 	cli.timeWaited = time.Since(cli.timeOfEntrance).Seconds()
 	fmt.Printf("Client %d waited %f seconds\n", cli.index, cli.timeWaited)
 	fmt.Print("Cleaning express\n")
@@ -76,7 +82,10 @@ func get_coffe(c chan *client, m *mugs, got_coffe chan int){
 	mu.Unlock()
 }
 
-func client_is_enjoying_coffe(index int, finished chan int){
+func clientIsEnjoyingCoffe(index int, finished chan int){
+	/*
+	This function handles client which is drinking his coffee.
+	 */
 	fmt.Printf("Client %d is enjoying his coffe\n", index)
 	//fmt.Printf(time.Now().String() + "\n")
 
@@ -86,61 +95,84 @@ func client_is_enjoying_coffe(index int, finished chan int){
 	finished <- index
 }
 
-func enjoy_coffe(clients [] *client, got chan int, finished chan int){
+func enjoyCoffe(clients [] *client, got chan int, finished chan int){
+	/*
+	Receive through channel 'got' index of client which has got his coffee, and started drinking it.
+	Then this function starts goroutine to handle their behaviour.
+
+	This is intended to be run as goroutine.
+	 */
 	enjoyed := 0
 	for enjoyed != len(clients){
 		ind := <-got
-		go client_is_enjoying_coffe(ind, finished)
+		go clientIsEnjoyingCoffe(ind, finished)
 		enjoyed++
 	}
 }
 
-func client_is_returning_mug(ind int, m *mugs, group *sync.WaitGroup){
-	if m.break_mug(){
-		fmt.Printf("Client %d broken his mug\n", ind)
-		defer group.Done()
+func clientIsReturningMug(index int, mugs_ *mugs, threadGroup *sync.WaitGroup){
+	/*
+	Receive index of client which is returning mug and handle it.
+
+	This is intended to be run as goroutine.
+	 */
+	if mugs_.breakMug(){
+		fmt.Printf("Client %d broken his mug\n", index)
+		defer threadGroup.Done()
 		return
 	}
-	fmt.Printf("Client %d is returning his mug!\n", ind)
+	fmt.Printf("Client %d is returning his mug!\n", index)
 	time.Sleep(2*time.Second)
-	m.avalible_mugs ++
-	m.mugs_in_use --
-	fmt.Printf("Client %d returned his mug\n", ind)
-	defer group.Done()
+	mugs_.availableMugs ++
+	mugs_.mugsInUse --
+	fmt.Printf("Client %d returned his mug\n", index)
+	defer threadGroup.Done()
 }
 
-func return_mug(clients [] *client, m *mugs, finished chan int, group *sync.WaitGroup){
+func returnMug(clients [] *client, mugs_ *mugs, finished chan int, threadGroup *sync.WaitGroup){
+	/*
+	Receive through channel 'finished' index of client which finished his coffee and started to return mug and start
+	goroutine to handle their behaviour.
+
+	This is intended to be run as goroutine.
+	 */
 	returned := 0
 	var retgr sync.WaitGroup
 	for returned != len(clients){
 		ind := <-finished
 		retgr.Add(1)
-		go client_is_returning_mug(ind, m, &retgr)
+		go clientIsReturningMug(ind, mugs_, &retgr)
 		returned ++
 	}
 	retgr.Wait()
-	defer group.Done()
+	defer threadGroup.Done()
 }
 
-func serve_clients(clients [] *client, m *mugs){
-	var all_clients_group sync.WaitGroup
-	all_clients_group.Add(1)
+func serveClients(clients [] *client, m *mugs){
+	/*
+	Main function to launch goroutines, which simulate real-life behaviour, for every client in clients
+	 */
+	var allClientsGroup sync.WaitGroup
+	allClientsGroup.Add(1)
 	c := make(chan *client, len(clients))
-	got_coffe := make(chan int, len(clients))
-	finished_enjoying_coffe := make(chan int)
+	gotCoffe := make(chan int, len(clients))
+	finishedEnjoyingCoffe := make(chan int)
 	for _, i := range clients{
 		c <- i
-		go get_coffe(c, m, got_coffe)
+		go getCoffee(c, m, gotCoffe)
 	}
-	go enjoy_coffe(clients, got_coffe, finished_enjoying_coffe)
-	go return_mug(clients, m, finished_enjoying_coffe, &all_clients_group)
-	all_clients_group.Wait()
+	go enjoyCoffe(clients, gotCoffe, finishedEnjoyingCoffe)
+	go returnMug(clients, m, finishedEnjoyingCoffe, &allClientsGroup)
+	allClientsGroup.Wait()
 }
 
-func get_clients_average_time(clients []*client){
+func getClientsAverageTime(clients []*client){
+	/*
+	Iterate over every client_ in clients and count average time of waiting for product
+	 */
 	var average float64
-	for _,i := range clients{
-		average += float64(i.timeWaited)
+	for _, client_ := range clients{
+		average += float64(client_.timeWaited)
 	}
 	average /= float64(len(clients))
 	fmt.Printf("Average time of wainting: %f \n", average)
@@ -151,9 +183,9 @@ var profit = 0.0
 var lose = 0.0
 
 func main(){
-	clients := make_client_queue(10)
+	clients := makeClientQueue(10)
 	mugs := &mugs{15,0}
-	serve_clients(clients, mugs)
-	get_clients_average_time(clients)
+	serveClients(clients, mugs)
+	getClientsAverageTime(clients)
 	fmt.Print("Balance: ", profit - lose, "\n")
 }
