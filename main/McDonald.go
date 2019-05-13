@@ -11,9 +11,9 @@ const (
 	HAMBURGER  = 1
 	CHEESEBURGER  = 2
 	CHICKENBURGER  = 3
-	FRYTKI = 4
+	FRIES = 4
 	COLA = 5
-	NUGGETSY = 6
+	NUGGETS = 6
 	)
 
 type client struct {
@@ -32,7 +32,7 @@ type workers struct {
 }
 
 type readyMeals struct {
-	readyHamburger, readyCheeseburger, reedyChickenburger, readyFries, readyCola, readyNuggets int
+	readyHamburger, readyCheeseburger, readyChickenburger, readyFries, readyCola, readyNuggets int
 }
 
 func serve_clients(clients [] *client){
@@ -77,6 +77,130 @@ func get_clients_average_time(clients []*client){
 	fmt.Printf("Average time of wainting: %f \n", average)
 }
 
+func make_order(cli *client, finishedOrder chan) {
+	for cl := range cli{
+		choice := rand.Intn(1)+1
+		if choice == 0{ //checkout
+		for worker.caschiersAvalible<0{
+
+		}
+			worker.caschiersAvalible-=1
+			worker.caschiersInUse+=1
+			time.Sleep(5*time.Second)
+		}
+	}
+
+	for ord := range(cli.order){
+			switch ord {
+			case HAMBURGER:
+				doHamburger()
+			case CHEESEBURGER:
+				doCheeseburger()
+			case CHICKENBURGER:
+				doChickenburger()
+			case FRIES:
+				doFries()
+			case COLA:
+				doCola()
+			case NUGGETS:
+				doNuggets()
+			}
+		}
+	finishedOrder <- cli
+
+}
+
+func doHamburger(){
+	for{
+		if ready.readyHamburger>0{
+			ready.readyHamburger-=1
+			break
+		}
+		else{
+			worker.kitchenWorkersInUse+=1;
+			worker.kitchenWorkersAvalible-=1;
+			time.Sleep(10 * time.Second) //robi hamburgera
+			break
+		}
+	}
+}
+
+func doCheeseburger(){
+	for{
+			if ready.readyCheeseburger>0{
+			ready.readyHamburger-=1
+			break
+		}
+		else{
+			worker.kitchenWorkersInUse+=1;
+			worker.kitchenWorkersAvalible-=1;
+			time.Sleep(10 * time.Second) //robi hamburgera
+			ready.readyCheeseburger+=1
+			break
+		}
+	}
+}
+
+func doChickenburger(){
+	for{
+		if ready.readyChickenburger>0{
+			ready.readyChickenburger-=1
+			break
+		}
+		else{
+			worker.kitchenWorkersInUse+=1;
+			worker.kitchenWorkersAvalible-=1;
+			time.Sleep(10 * time.Second) //robi hamburgera
+			break
+		}
+	}
+}
+
+func doFries(){
+	for{
+		if ready.readyFries>0{
+			ready.readyFries=1
+			break
+		}
+		else{
+			worker.kitchenWorkersInUse+=1;
+			worker.kitchenWorkersAvalible-=1;
+			time.Sleep(10 * time.Second) //robi hamburgera
+			break
+		}
+	}
+}
+
+func doNuggets(){
+	for{
+		if ready.readyFries>0{
+			ready.readyFries-=1
+			break
+		}
+		else{
+			worker.kitchenWorkersInUse+=1;
+			worker.kitchenWorkersAvalible-=1;
+			time.Sleep(10 * time.Second) //robi hamburgera
+			break
+		}
+	}
+}
+
+func doCola(){
+	for{
+		if ready.readyCola>0{
+			ready.readyCola-=1
+			break
+		}
+		else{
+			worker.kitchenWorkersInUse+=1;
+			worker.kitchenWorkersAvalible-=1;
+			time.Sleep(10 * time.Second) //robi hamburgera
+			break
+		}
+	}
+}
+
 var mu = &sync.Mutex{}
 var profit = 0.0
 var lose = 0.0
@@ -86,7 +210,7 @@ var selfCheckouts = device{3,0}
 var friesMaker = device{3,0}
 var tray = device{10,0}
 var ready = readyMeals{5,5,5,5,5,5}
-
+var worker = workers{3,0,3,0}
 
 func main(){
 	clients := make_client_queue(10)
