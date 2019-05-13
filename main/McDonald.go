@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"mime"
 	"sync"
 	"time"
 )
@@ -19,7 +20,7 @@ const (
 type client struct {
 	index          int
 	timeOfEntrance time.Time
-	timeWaited float64
+	timeWaited time.Duration
 	order []int
 }
 
@@ -35,6 +36,16 @@ type readyMeals struct {
 	readyHamburger, readyCheeseburger, readyChickenburger, readyFries, readyCola, readyNuggets int
 }
 
+func count(what int, order []int) int {
+	amount := 0
+	for _, i := range order{
+		if i == what{
+			amount ++
+		}
+	}
+	return amount
+}
+
 func serve_clients(clients [] *client){
 	var allClientsGroup sync.WaitGroup
 	allClientsGroup.Add(1)
@@ -44,11 +55,93 @@ func serve_clients(clients [] *client){
 		go make_order(cli, finishedOrder)
 		go wait_for_order(finishedOrder)
 	}
-	go check_all_done(&allClientsGroup)
+	go check_all_done(clients, &allClientsGroup)
 	allClientsGroup.Wait()
 }
 
+func check_all_done(clients [] *client, threadGroup *sync.WaitGroup)  {
+	done :=0
+	for done == 0 {
+		if servedClients == len(clients) {
+			done = 1
+		}
+	}
+	defer threadGroup.Done()
+}
 
+func wait_for_order(finishedOrder chan *client){
+	done := 0
+	cli := <-finishedOrder
+	for done == 0{
+		fmt.Printf("Client %d is still waiting for his meal\n", cli.index)
+		mu.Lock()
+		if count(HAMBURGER, cli.order) > ready.readyHamburger {
+			mu.Unlock()
+			time.Sleep(2)
+			continue
+		}
+		if count(CHEESEBURGER, cli.order) > ready.readyCheeseburger {
+			mu.Unlock()
+			time.Sleep(2)
+			continue
+		}
+		if count(CHICKENBURGER, cli.order) > ready.readyChickenburger {
+			mu.Unlock()
+			time.Sleep(2)
+			continue
+		}
+		if count(FRYTKI, cli.order) > ready.readyFries {
+			mu.Unlock()
+			time.Sleep(2)
+			continue
+		}
+		if count(COLA, cli.order) > ready.readyCola {
+			mu.Unlock()
+			time.Sleep(2)
+			continue
+		}
+		if count(NUGGETSY, cli.order) > ready.readyNuggets {
+			mu.Unlock()
+			time.Sleep(2)
+			continue
+		}
+		if tray.available >0{
+			tray.available--
+			tray.inUse++
+		}
+		mu.Unlock()
+		cli.timeWaited = time.Since(cli.timeOfEntrance)
+		done = 1
+	}
+	fmt.Printf("Client %d got his meal\n", cli.index)
+	go callClient(cli)
+}
+
+func callClient(cli *client){
+	for worker.caschiersAvalible <0{
+	}
+	worker.caschiersAvalible --
+	worker.caschiersInUse ++
+	fmt.Printf("Client %d is going to get his meal\n", cli.index)
+	time.Sleep(3)
+	go enjoyMeal(cli)
+}
+
+func enjoyMeal(cli *client){
+	fmt.Printf("Client %d is enjoying his meal\n", cli.index)
+	time.Sleep(10)
+	fmt.Printf("Client %d finished his meal\n", cli.index)
+	go clientIsReturningTray(cli)
+}
+
+func clientIsReturningTray(cli *client)  {
+	fmt.Printf("Client %d is returning his tray\n", cli.index)
+	time.Sleep(3)
+	fmt.Printf("Client %d returned his tray\n", cli.index)
+	tray.available++
+	tray.available--
+	servedClients++
+}
 
 func create_client(clientId int) *client{
 	var order []int
@@ -188,9 +281,11 @@ var friesMaker = device{3,0}
 var tray = device{10,0}
 var ready = readyMeals{5,5,5,5,5,5}
 var worker = workers{3,0,3,0}
+var servedClients  = 0
 
 func main(){
 	clients := make_client_queue(10)
+	serve_clients(clients)
 	get_clients_average_time(clients)
 	fmt.Print("Balance: ", profit - lose, "\n")
 }
