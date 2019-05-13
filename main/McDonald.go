@@ -11,10 +11,9 @@ const (
 	HAMBURGER  = 1
 	CHEESEBURGER  = 2
 	CHICKENBURGER  = 3
-	CUSTOMBURGER = 4
-	FRYTKI = 5
-	COLA = 6
-	NUGGETSY = 7
+	FRYTKI = 4
+	COLA = 5
+	NUGGETSY = 6
 	)
 
 type client struct {
@@ -26,6 +25,14 @@ type client struct {
 
 type device struct {
 	available, inUse int
+}
+
+type workers struct {
+	kitchenWorkersAvalible, kitchenWorkersInUse, caschiersAvalible, caschiersInUse int
+}
+
+type readyMeals struct {
+	readyHamburger, readyCheeseburger, reedyChickenburger, readyFries, readyCola, readyNuggets int
 }
 
 func serve_clients(clients [] *client){
@@ -40,6 +47,8 @@ func serve_clients(clients [] *client){
 	go check_all_done(&allClientsGroup)
 	allClientsGroup.Wait()
 }
+
+
 
 func create_client(clientId int) *client{
 	var order []int
@@ -76,6 +85,8 @@ var checkouts = device{3,0}
 var selfCheckouts = device{3,0}
 var friesMaker = device{3,0}
 var tray = device{10,0}
+var ready = readyMeals{5,5,5,5,5,5}
+
 
 func main(){
 	clients := make_client_queue(10)
