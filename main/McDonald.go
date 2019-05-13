@@ -121,63 +121,61 @@ func zrob_zarcie(cli *client){
 }
 
 func doHamburger(){ //dodac while
-	for{
-		worker.kitchenWorkersInUse+=1;
-		worker.kitchenWorkersAvalible-=1;
-		time.Sleep(10 * time.Second) //robi hamburgera
-		ready.readyHamburger+=1
-		break
+	for ready.readyHamburger<0{
 	}
+	worker.kitchenWorkersInUse+=1;
+	worker.kitchenWorkersAvalible-=1;
+	time.Sleep(10 * time.Second) //robi hamburgera
+	ready.readyHamburger+=1
 }
 
 func doCheeseburger(){ //dodac while
-	for{
-		worker.kitchenWorkersInUse+=1;
-		worker.kitchenWorkersAvalible-=1;
-		time.Sleep(10 * time.Second) //robi hamburgera
-		ready.readyCheeseburger+=1
-		break
+	for ready.readyCheeseburger<0 {
 	}
+	worker.kitchenWorkersInUse+=1;
+	worker.kitchenWorkersAvalible-=1;
+	time.Sleep(10 * time.Second) //robi hamburgera
+	ready.readyCheeseburger+=1
 }
 
 func doChickenburger(){ //dodac while
-	for{
-		worker.kitchenWorkersInUse+=1;
-		worker.kitchenWorkersAvalible-=1;
-		time.Sleep(10 * time.Second) //robi hamburgera
-		ready.readyChickenburger+=1
-		break
+	for ready.readyChickenburger<0 {
 	}
+	worker.kitchenWorkersInUse+=1;
+	worker.kitchenWorkersAvalible-=1;
+	time.Sleep(10 * time.Second) //robi hamburgera
+	ready.readyChickenburger+=1
+
 }
 
 func doFries(){ //dodac while
-	for{
-		worker.kitchenWorkersInUse+=1;
-		worker.kitchenWorkersAvalible-=1;
-		time.Sleep(10 * time.Second) //robi hamburgera
-		ready.readyFries+=1
-		break
+	for ready.readyFries<0 {
 	}
+	worker.kitchenWorkersInUse+=1;
+	worker.kitchenWorkersAvalible-=1;
+	time.Sleep(10 * time.Second) //robi hamburgera
+	ready.readyFries+=1
+
 }
 
 func doNuggets(){ //dodac while
-	for{
-		worker.kitchenWorkersInUse+=1;
-		worker.kitchenWorkersAvalible-=1;
-		time.Sleep(10 * time.Second) //robi hamburgera
-		ready.readyNuggets+=1
-		break
+	for ready.readyNuggets<0 {
 	}
+	worker.kitchenWorkersInUse+=1;
+	worker.kitchenWorkersAvalible-=1;
+	time.Sleep(10 * time.Second) //robi hamburgera
+	ready.readyNuggets+=1
+
 }
 
 func doCola(){ //dodac while
-	for{
-		worker.kitchenWorkersInUse+=1;
-		worker.kitchenWorkersAvalible-=1;
-		time.Sleep(10 * time.Second) //robi hamburgera
-		ready.readyCola+=1
-		break
+	for ready.readyCola<0 {
 	}
+	}
+	worker.kitchenWorkersInUse+=1;
+	worker.kitchenWorkersAvalible-=1;
+	time.Sleep(10 * time.Second) //robi hamburgera
+	ready.readyCola+=1
 }
 
 var mu = &sync.Mutex{}
