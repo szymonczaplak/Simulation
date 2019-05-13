@@ -78,18 +78,26 @@ func get_clients_average_time(clients []*client){
 }
 
 func make_order(cli *client, finishedOrder chan) {
-	for cl := range cli{
-		choice := rand.Intn(1)+1
-		if choice == 0{ //checkout
-		for worker.caschiersAvalible<0{
-
+	choice := rand.Intn(1)+1
+	if choice == 0{ //checkout
+	for worker.caschiersAvalible<0{
 		}
-			worker.caschiersAvalible-=1
-			worker.caschiersInUse+=1
-			time.Sleep(5*time.Second)
+		worker.caschiersAvalible-=1
+		worker.caschiersInUse+=1
+		time.Sleep(5*time.Second)
+		}
+
+	if choice == 1{ //checkout
+	for worker.caschiersAvalible<0{
+		}
+		worker.caschiersAvalible-=1
+		worker.caschiersInUse+=1
+		time.Sleep(5*time.Second)
 		}
 	}
+}
 
+func daj_zarcie(cli *client, finishedOrder chan){
 	for ord := range(cli.order){
 			switch ord {
 			case HAMBURGER:
@@ -106,7 +114,6 @@ func make_order(cli *client, finishedOrder chan) {
 				doNuggets()
 			}
 		}
-	finishedOrder <- cli
 
 }
 
