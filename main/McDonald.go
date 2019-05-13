@@ -85,6 +85,7 @@ func make_order(cli *client, finishedOrder chan) {
 		worker.caschiersAvalible-=1
 		worker.caschiersInUse+=1
 		time.Sleep(5*time.Second)
+		daj_zarcie(cli, finishedOrder)
 		}
 
 	if choice == 1{ //checkout
@@ -93,6 +94,7 @@ func make_order(cli *client, finishedOrder chan) {
 		worker.caschiersAvalible-=1
 		worker.caschiersInUse+=1
 		time.Sleep(5*time.Second)
+		daj_zarcie(cli, finishedOrder)
 		}
 	}
 }
