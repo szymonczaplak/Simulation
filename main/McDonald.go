@@ -33,7 +33,6 @@ func serve_clients(clients [] *client){
 	allClientsGroup.Add(1)
 
 	finishedOrder := make(chan *client, len(clients))
-	clientLeft := make(chan *client, len(clients))
 	for _, cli := range clients{
 		go make_order(cli, finishedOrder)
 		go wait_for_order(finishedOrder)
