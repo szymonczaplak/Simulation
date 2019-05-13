@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"mime"
 	"sync"
 	"time"
 )
@@ -90,7 +89,7 @@ func wait_for_order(finishedOrder chan *client){
 			time.Sleep(2)
 			continue
 		}
-		if count(FRYTKI, cli.order) > ready.readyFries {
+		if count(FRIES, cli.order) > ready.readyFries {
 			mu.Unlock()
 			time.Sleep(2)
 			continue
@@ -100,7 +99,7 @@ func wait_for_order(finishedOrder chan *client){
 			time.Sleep(2)
 			continue
 		}
-		if count(NUGGETSY, cli.order) > ready.readyNuggets {
+		if count(NUGGETS, cli.order) > ready.readyNuggets {
 			mu.Unlock()
 			time.Sleep(2)
 			continue
@@ -170,7 +169,7 @@ func get_clients_average_time(clients []*client){
 	fmt.Printf("Average time of wainting: %f \n", average)
 }
 
-func make_order(cli *client, finishedOrder chan) {
+func make_order(cli *client, finishedOrder chan *client) {
 	choice := rand.Intn(1)+1
 	if choice == 0{ //checkout
 		for worker.caschiersAvalible<0{
@@ -263,7 +262,6 @@ func doNuggets(){ //dodac while
 
 func doCola(){ //dodac while
 	for ready.readyCola<0 {
-	}
 	}
 	worker.kitchenWorkersInUse+=1;
 	worker.kitchenWorkersAvalible-=1;
