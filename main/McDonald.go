@@ -27,16 +27,28 @@ type client struct {
 type device struct {
 	available, inUse int
 }
+
 func serve_clients(clients [] *client){
+	var allClientsGroup sync.WaitGroup
+	allClientsGroup.Add(1)
+
+	finishedOrder := make(chan *client, len(clients))
+	clientLeft := make(chan *client, len(clients))
+	for _, cli := range clients{
+		go make_order(cli, finishedOrder)
+		go wait_for_order(finishedOrder)
+	}
+	go check_all_done(&allClientsGroup)
+	allClientsGroup.Wait()
 }
 
-func create_client(n int) *client{
+func create_client(clientId int) *client{
 	var order []int
 	number_of_elements := rand.Intn(6)
 	for i :=0 ; i<number_of_elements; i++{
 		order = append(order, rand.Intn(7)+1)
 	}
-	return &client{n, time.Now(), 0, order}
+	return &client{clientId, time.Now(), 0, order}
 }
 
 func make_client_queue(number_of_clients int) []*client{
