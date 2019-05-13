@@ -112,12 +112,12 @@ func wait_for_order(finishedOrder chan *client){
 		cli.timeWaited = time.Since(cli.timeOfEntrance)
 		done = 1
 	}
-	fmt.Printf("Client %d got his meal\n", cli.index)
+	fmt.Printf("%d lient's order is ready\n", cli.index)
 	go callClient(cli)
 }
 
 func callClient(cli *client){
-	for worker.caschiersAvalible <0{
+	for worker.caschiersAvalible ==0{
 	}
 	worker.caschiersAvalible --
 	worker.caschiersInUse ++
@@ -189,6 +189,8 @@ func make_order(cli *client, finishedOrder chan *client) {
 			go zrob_zarcie(cli)
 			}
 	finishedOrder <- cli
+	worker.caschiersAvalible+=1
+	worker.caschiersInUse-=1
 }
 
 
