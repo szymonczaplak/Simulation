@@ -80,133 +80,103 @@ func get_clients_average_time(clients []*client){
 func make_order(cli *client, finishedOrder chan) {
 	choice := rand.Intn(1)+1
 	if choice == 0{ //checkout
-	for worker.caschiersAvalible<0{
-		}
-		worker.caschiersAvalible-=1
-		worker.caschiersInUse+=1
-		time.Sleep(5*time.Second)
-		daj_zarcie(cli, finishedOrder)
-		}
+		for worker.caschiersAvalible<0{
+			}
+			worker.caschiersAvalible-=1
+			worker.caschiersInUse+=1
+			time.Sleep(5*time.Second)
+			go zrob_zarcie(cli)
+			}
 
 	if choice == 1{ //checkout
-	for worker.caschiersAvalible<0{
-		}
-		worker.caschiersAvalible-=1
-		worker.caschiersInUse+=1
-		time.Sleep(5*time.Second)
-		daj_zarcie(cli, finishedOrder)
-		}
-	}
+		for worker.caschiersAvalible<0{
+			}
+			worker.caschiersAvalible-=1
+			worker.caschiersInUse+=1
+			time.Sleep(5*time.Second)
+			go zrob_zarcie(cli)
+			}
+	finishedOrder <- cli
 }
 
-func daj_zarcie(cli *client, finishedOrder chan){
-	for ord := range(cli.order){
+
+func zrob_zarcie(cli *client){
+	for _,ord := range(cli.order){
 			switch ord {
 			case HAMBURGER:
-				doHamburger()
+				go doHamburger()
 			case CHEESEBURGER:
-				doCheeseburger()
+				go doCheeseburger()
 			case CHICKENBURGER:
-				doChickenburger()
+				go doChickenburger()
 			case FRIES:
-				doFries()
+				go doFries()
 			case COLA:
 				doCola()
 			case NUGGETS:
-				doNuggets()
+				go doNuggets()
 			}
 		}
 
 }
 
-func doHamburger(){
+func doHamburger(){ //dodac while
 	for{
-		if ready.readyHamburger>0{
-			ready.readyHamburger-=1
-			break
-		}
-		else{
-			worker.kitchenWorkersInUse+=1;
-			worker.kitchenWorkersAvalible-=1;
-			time.Sleep(10 * time.Second) //robi hamburgera
-			break
-		}
+		worker.kitchenWorkersInUse+=1;
+		worker.kitchenWorkersAvalible-=1;
+		time.Sleep(10 * time.Second) //robi hamburgera
+		ready.readyHamburger+=1
+		break
 	}
 }
 
-func doCheeseburger(){
+func doCheeseburger(){ //dodac while
 	for{
-			if ready.readyCheeseburger>0{
-			ready.readyHamburger-=1
-			break
-		}
-		else{
-			worker.kitchenWorkersInUse+=1;
-			worker.kitchenWorkersAvalible-=1;
-			time.Sleep(10 * time.Second) //robi hamburgera
-			ready.readyCheeseburger+=1
-			break
-		}
+		worker.kitchenWorkersInUse+=1;
+		worker.kitchenWorkersAvalible-=1;
+		time.Sleep(10 * time.Second) //robi hamburgera
+		ready.readyCheeseburger+=1
+		break
 	}
 }
 
-func doChickenburger(){
+func doChickenburger(){ //dodac while
 	for{
-		if ready.readyChickenburger>0{
-			ready.readyChickenburger-=1
-			break
-		}
-		else{
-			worker.kitchenWorkersInUse+=1;
-			worker.kitchenWorkersAvalible-=1;
-			time.Sleep(10 * time.Second) //robi hamburgera
-			break
-		}
+		worker.kitchenWorkersInUse+=1;
+		worker.kitchenWorkersAvalible-=1;
+		time.Sleep(10 * time.Second) //robi hamburgera
+		ready.readyChickenburger+=1
+		break
 	}
 }
 
-func doFries(){
+func doFries(){ //dodac while
 	for{
-		if ready.readyFries>0{
-			ready.readyFries=1
-			break
-		}
-		else{
-			worker.kitchenWorkersInUse+=1;
-			worker.kitchenWorkersAvalible-=1;
-			time.Sleep(10 * time.Second) //robi hamburgera
-			break
-		}
+		worker.kitchenWorkersInUse+=1;
+		worker.kitchenWorkersAvalible-=1;
+		time.Sleep(10 * time.Second) //robi hamburgera
+		ready.readyFries+=1
+		break
 	}
 }
 
-func doNuggets(){
+func doNuggets(){ //dodac while
 	for{
-		if ready.readyFries>0{
-			ready.readyFries-=1
-			break
-		}
-		else{
-			worker.kitchenWorkersInUse+=1;
-			worker.kitchenWorkersAvalible-=1;
-			time.Sleep(10 * time.Second) //robi hamburgera
-			break
-		}
+		worker.kitchenWorkersInUse+=1;
+		worker.kitchenWorkersAvalible-=1;
+		time.Sleep(10 * time.Second) //robi hamburgera
+		ready.readyNuggets+=1
+		break
 	}
 }
 
-func doCola(){
+func doCola(){ //dodac while
 	for{
-		if ready.readyCola>0{
-			ready.readyCola-=1
-			break
-		}
-		else{
-			worker.kitchenWorkersInUse+=1;
-			worker.kitchenWorkersAvalible-=1;
-			time.Sleep(10 * time.Second) //robi hamburgera
-			break
-		}
+		worker.kitchenWorkersInUse+=1;
+		worker.kitchenWorkersAvalible-=1;
+		time.Sleep(10 * time.Second) //robi hamburgera
+		ready.readyCola+=1
+		break
 	}
 }
 
