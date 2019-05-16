@@ -297,12 +297,16 @@ var selfCheckouts = device{3,0}
 var friesMaker = device{3,0}
 var tray = device{10,0}
 var ready = readyMeals{0,0,0,0,0,0}
-var worker = workers{1,0,1,0}
+var worker = workers{5,0,5,0}
 var servedClients  = 0
 
 func main(){
-	clients := make_client_queue(100)
+	clients := make_client_queue(10)
+	start_time := time.Now()
 	serve_clients(clients)
+	duration := time.Since(start_time)
+	seconds := duration / time.Second
+	fmt.Printf("Time of dealing with 10 clients %d second \n", seconds)
 	get_clients_average_time(clients)
 	fmt.Print("Balance: ", profit - lose, "\n")
 }
