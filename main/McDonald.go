@@ -157,12 +157,16 @@ func callClient(cli *client){
 		fmt.Print("There is no cashiers\n")
 		time.Sleep(1 * time.Second)
 	}
+	mu.Lock()
 	worker.caschiersAvalible --
 	worker.caschiersInUse ++
+	mu.Unlock()
 	fmt.Printf("Client %d is going to get his meal\n", cli.index)
 	time.Sleep(3)
+	mu.Lock()
 	worker.caschiersAvalible ++
 	worker.caschiersInUse --
+	mu.Unlock()
 	enjoyMeal(cli)
 }
 
@@ -182,7 +186,7 @@ func clientIsReturningTray(cli *client)  {
 	mu.Lock()
 	servedClients++
 	mu.Unlock()
-	fmt.Printf("Client %d has just been served", cli.index)
+	fmt.Printf("Client %d has just been served\n", cli.index)
 }
 
 func create_client(clientId int) *client{
@@ -218,26 +222,35 @@ func make_order(cli *client, finishedOrder chan *client) {
 	choice := rand.Intn(1)+1
 	if choice == 0{ //checkout
 		for worker.caschiersAvalible<0{
+			fmt.Print("There is no cashiers\n")
+			time.Sleep(1 * time.Second)
 			}
+			mu.Lock()
 			worker.caschiersAvalible-=1
 			worker.caschiersInUse+=1
+			mu.Unlock()
 			time.Sleep(5*time.Second)
 			go zrob_zarcie(cli)
 			}
 
 	if choice == 1{ //checkout
 		for worker.caschiersAvalible<0{
+			fmt.Print("There is no cashiers\n")
+			time.Sleep(1 * time.Second)
 			}
+			mu.Lock()
 			worker.caschiersAvalible-=1
 			worker.caschiersInUse+=1
+			mu.Unlock()
 			time.Sleep(5*time.Second)
 			go zrob_zarcie(cli)
 			}
 	finishedOrder <- cli
 	
-
+	mu.Lock()
 	worker.caschiersAvalible+=1
 	worker.caschiersInUse-=1
+	mu.Unlock()
 }
 
 func zrob_zarcie(cli *client){
@@ -261,12 +274,18 @@ func zrob_zarcie(cli *client){
 
 func prepareMeal(duration time.Duration, what *int){
 	fmt.Printf("Preparing something, now is : %d \n", *what)
+	mu.Lock()
 	worker.kitchenWorkersInUse+=1
 	worker.kitchenWorkersAvalible-=1
+	mu.Unlock()
 	time.Sleep(duration) //robi hamburgera
+	mu.Lock()
 	*what+=1
+	mu.Unlock()
+	mu.Lock()
 	worker.kitchenWorkersInUse-=1
 	worker.kitchenWorkersAvalible+=1
+	mu.Unlock()
 }
 
 var mu = &sync.Mutex{}
@@ -282,7 +301,7 @@ var worker = workers{1,0,1,0}
 var servedClients  = 0
 
 func main(){
-	clients := make_client_queue(2)
+	clients := make_client_queue(100)
 	serve_clients(clients)
 	get_clients_average_time(clients)
 	fmt.Print("Balance: ", profit - lose, "\n")
