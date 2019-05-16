@@ -74,8 +74,24 @@ func check_all_done(clients [] *client, threadGroup *sync.WaitGroup)  {
 	defer threadGroup.Done()
 }
 
-func collectOrder(){
-	fmt.Print("IMPLEMANTUJ collectOrder")
+func collectOrder(cli *client){
+	//fmt.Print("IMPLEMANTUJ collectOrder")
+	for _, product := range cli.order{
+		switch product {
+		case HAMBURGER:
+			ready.readyHamburger--
+		case CHEESEBURGER:
+			ready.readyCheeseburger--
+		case CHICKENBURGER:
+			ready.readyChickenburger--
+		case FRIES:
+			ready.readyFries--
+		case COLA:
+			ready.readyCola--
+		case NUGGETS:
+			ready.readyNuggets--
+			}
+	}
 }
 
 func wait_for_order(finishedOrder chan *client){
@@ -85,43 +101,43 @@ func wait_for_order(finishedOrder chan *client){
 		mu.Lock()
 		if count(HAMBURGER, cli.order) > ready.readyHamburger {
 			mu.Unlock()
-			time.Sleep(2)
+			time.Sleep(2*time.Second)
 			fmt.Printf("Client %d is still waiting for his meal\n", cli.index)
 			continue
 		}
 		if count(CHEESEBURGER, cli.order) > ready.readyCheeseburger {
 			mu.Unlock()
-			time.Sleep(2)
+			time.Sleep(2*time.Second)
 			fmt.Printf("Client %d is still waiting for his meal\n", cli.index)
 			continue
 		}
 		if count(CHICKENBURGER, cli.order) > ready.readyChickenburger {
 			mu.Unlock()
-			time.Sleep(2)
+			time.Sleep(2*time.Second)
 			fmt.Printf("Client %d is still waiting for his meal\n", cli.index)
 			continue
 		}
 		if count(FRIES, cli.order) > ready.readyFries {
 			mu.Unlock()
-			time.Sleep(2)
+			time.Sleep(2*time.Second)
 			fmt.Printf("Client %d is still waiting for his meal\n", cli.index)
 			continue
 		}
 		if count(COLA, cli.order) > ready.readyCola {
 			mu.Unlock()
-			time.Sleep(2)
+			time.Sleep(2*time.Second)
 			fmt.Printf("Client %d is still waiting for his meal\n", cli.index)
 			continue
 		}
 		if count(NUGGETS, cli.order) > ready.readyNuggets {
 			mu.Unlock()
-			time.Sleep(2)
+			time.Sleep(2*time.Second)
 			fmt.Printf("Client %d is still waiting for his meal\n", cli.index)
 			continue
 		}
 		if tray.available < 0 {
 			mu.Unlock()
-			time.Sleep(2)
+			time.Sleep(2*time.Second)
 			fmt.Printf("Client %d is still waiting for his meal\n", cli.index)
 			continue
 		}
@@ -131,26 +147,30 @@ func wait_for_order(finishedOrder chan *client){
 	tray.available--
 	tray.inUse++
 	mu.Unlock()
-	cli.timeWaited = time.Since(cli.timeOfEntrance) / time.Second
-	fmt.Printf("%d lient's order is ready\n", cli.index)
-	go callClient(cli)
+	cli.timeWaited = time.Since(cli.timeOfEntrance)
+	fmt.Printf("%d client's order is ready\n", cli.index)
+	callClient(cli)
 }
 
 func callClient(cli *client){
 	for worker.caschiersAvalible ==0{
+		fmt.Print("There is no cashiers\n")
+		time.Sleep(1 * time.Second)
 	}
 	worker.caschiersAvalible --
 	worker.caschiersInUse ++
 	fmt.Printf("Client %d is going to get his meal\n", cli.index)
 	time.Sleep(3)
-	go enjoyMeal(cli)
+	worker.caschiersAvalible ++
+	worker.caschiersInUse --
+	enjoyMeal(cli)
 }
 
 func enjoyMeal(cli *client){
 	fmt.Printf("Client %d is enjoying his meal\n", cli.index)
 	time.Sleep(10)
 	fmt.Printf("Client %d finished his meal\n", cli.index)
-	go clientIsReturningTray(cli)
+	clientIsReturningTray(cli)
 }
 
 func clientIsReturningTray(cli *client)  {
@@ -159,7 +179,9 @@ func clientIsReturningTray(cli *client)  {
 	fmt.Printf("Client %d returned his tray\n", cli.index)
 	tray.available++
 	tray.inUse--
+	mu.Lock()
 	servedClients++
+	mu.Unlock()
 	fmt.Printf("Client %d has just been served", cli.index)
 }
 
@@ -184,6 +206,7 @@ func make_client_queue(number_of_clients int) []*client{
 func get_clients_average_time(clients []*client){
 	var average float64
 	for _,i := range clients{
+		fmt.Printf("Client %d waited %d\n", i.index, i.timeWaited)
 		average += float64(i.timeWaited)
 	}
 	average /= float64(len(clients))
@@ -191,6 +214,7 @@ func get_clients_average_time(clients []*client){
 }
 
 func make_order(cli *client, finishedOrder chan *client) {
+	fmt.Printf("Client %d is making an order\n", cli.index)
 	choice := rand.Intn(1)+1
 	if choice == 0{ //checkout
 		for worker.caschiersAvalible<0{
@@ -210,6 +234,8 @@ func make_order(cli *client, finishedOrder chan *client) {
 			go zrob_zarcie(cli)
 			}
 	finishedOrder <- cli
+	
+
 	worker.caschiersAvalible+=1
 	worker.caschiersInUse-=1
 }
@@ -218,27 +244,27 @@ func zrob_zarcie(cli *client){
 	for _,ord := range(cli.order){
 			switch ord {
 			case HAMBURGER:
-				go prepareMeal(time.Second * 3, ready.readyHamburger)
+				go prepareMeal(time.Second * 3, &ready.readyHamburger)
 			case CHEESEBURGER:
-				go prepareMeal(time.Second * 3, ready.readyCheeseburger)
+				go prepareMeal(time.Second * 3, &ready.readyCheeseburger)
 			case CHICKENBURGER:
-				go prepareMeal(time.Second * 3, ready.readyChickenburger)
+				go prepareMeal(time.Second * 3, &ready.readyChickenburger)
 			case FRIES:
-				go prepareMeal(time.Second * 3, ready.readyFries)
+				go prepareMeal(time.Second * 3, &ready.readyFries)
 			case COLA:
-				prepareMeal(time.Second * 3, ready.readyCola)
+				go prepareMeal(time.Second * 3, &ready.readyCola)
 			case NUGGETS:
-				go prepareMeal(time.Second * 3, ready.readyNuggets)
+				go prepareMeal(time.Second * 3, &ready.readyNuggets)
 			}
 		}
 }
 
-func prepareMeal(duration time.Duration, what int){
-	fmt.Printf("Preparing something, now is : %d \n", what)
+func prepareMeal(duration time.Duration, what *int){
+	fmt.Printf("Preparing something, now is : %d \n", *what)
 	worker.kitchenWorkersInUse+=1
 	worker.kitchenWorkersAvalible-=1
 	time.Sleep(duration) //robi hamburgera
-	what+=1
+	*what+=1
 	worker.kitchenWorkersInUse-=1
 	worker.kitchenWorkersAvalible+=1
 }
@@ -251,12 +277,12 @@ var checkouts = device{3,0}
 var selfCheckouts = device{3,0}
 var friesMaker = device{3,0}
 var tray = device{10,0}
-var ready = readyMeals{5,5,5,5,5,5}
-var worker = workers{3,0,3,0}
+var ready = readyMeals{0,0,0,0,0,0}
+var worker = workers{1,0,1,0}
 var servedClients  = 0
 
 func main(){
-	clients := make_client_queue(10)
+	clients := make_client_queue(2)
 	serve_clients(clients)
 	get_clients_average_time(clients)
 	fmt.Print("Balance: ", profit - lose, "\n")
